@@ -2,12 +2,14 @@
 <div id="insert-user" style="margin: 100px 100px 100px 0px;">
 
     <form  style="margin-left: 180px; width: 100%" method="post" action="/admin/insert-token">
-        <p>
-            <label>Token:</label>
-            <input type="text" id="txtToken"  name="txtToken"  width="200px"/>
-
-            <input type="submit" value="Insert" />
-        </p>
+        <!--<p>-->
+            <div class="form-group">
+            <label for="txtTokens" >Token:</label>
+           <!-- <input type="text" id="txtToken"  name="txtToken"  width="200px"/>-->
+            <textarea rows="4" cols="50" id="txtTokens" name="txtTokenList"></textarea>
+            </div>
+        <!--</p>-->
+        <input type="submit" value="Insert" />
 
         <br></br>
 
@@ -17,9 +19,7 @@
 
           <br></br>
 
-          <p>
-              <textarea rows="4" cols="50" name="comment" ></textarea>
-          </p>-->
+          -->
     </form>
 
 

@@ -22,44 +22,90 @@ router.get('/control', isLoggedIn, function(req, res, next) {
 });
 
 router.post('/insert-token', function (req,res,next) {
-    var token = req.body.txtToken;
+   // var token = req.body.txtToken;
 
+    var tokenlist = req.body.txtTokenList;
 
-    var newtoken = new Token();
-    newtoken.usertoken = token;
-    newtoken.status = "ok";
+    var tokenarr = tokenlist.split('\n');
+    console.log('List Token : ' + tokenlist)
 
-    newtoken.save(function (err, rs) {
+    for (var i=0; i<tokenarr.length;i++){
+        var newtoken = new Token();
+        newtoken.usertoken = tokenarr[i].trim();
+        newtoken.status = "ok1";
+        newtoken.save(function (err, rs) {
+            if(err)
+                console.log('save failure');
+            else
+                console.log('success');
+        })
+    }
+
+    res.redirect('/admin/insert-token');
+
+});
+
+router.post('/insert-user', function (req,res,next) {
+    var username = req.body.email;
+    var password = req.body.password;
+    var newUser = new User();
+    newUser.username = username;
+    newUser.password = password;
+    console.log('username : ' +username + ' password: '+ password);
+    newUser.state = 1;
+    newUser.usertoken = 'abc';
+    newUser.save(function (err, rs) {
         if(err)
             console.log('save failure');
         else
             console.log('success');
-        res.redirect('/admin/insert-token');
-    })
+    });
 
-    console.log('token :'+ token);
-})
+    res.redirect('/admin/insert-user');
+});
 
 router.post('/control-video', function (req,res,next) {
     var urlvideo = req.body.txtUrl;
     var time = parseInt(req.body.txtTime);
     var number = parseInt(req.body.txtNumber);
     console.log('url : '+ urlvideo + ' time : ' + time + 'number' + number );
-   /* User.find(function(err,docs){
+  /*  User.find(function(err,docs) {
         if (err)
             console('Error load user');
 
-        var currentNumber = 0;
-        while(currentNumber < number){
-            for(var i=0; i<docs.length;i++)
-            {
+        /!*for(var i = 0; i<docs.length; i++)
+            docs[i].state = 0;*!/
 
+        var times = 0;
+
+        var currentNumber = 0;
+        //   while(currentNumber < number) {
+        var l = 0;
+        while (l < 3) {
+            for (var i = 0; i < docs.length; i++) {
                 var loginUser = docs[i];
-                automodule.autoViewByAccount('email','pass',loginUser.username,loginUser.password,urlvideo,time * 1000);
+                console.log('in autoview');
+                //  loginUser.state =1 ;
+                automodule.autoViewByAccount('email', 'pass', loginUser, urlvideo, time * 1000, function () {
+                    times++;
+                    console.log('call back call' + times);
+                });
             }
-            currentNumber = currentNumber + docs.length();
+            setTimeout(function () {
+                console.log('on time out');
+            }, 3000);
+            console.log('out timeout');
+            l++
         }
+
+
+            currentNumber = currentNumber + docs.length;
+       // }
+
+        console.log('So lan da dc xem video : ' + times);
+
     });*/
+
 
     Token.find(function (err,tokens) {
         if (err)
@@ -67,17 +113,21 @@ router.post('/control-video', function (req,res,next) {
 
         var currentNumberToken = 0;
         console.log('Token List : '+ tokens.length);
-        while(currentNumberToken < number){
-
-            for(var itk=0; itk<tokens.length;itk++)
-            {
-
-                var token = tokens[itk];
-                console.log('autotest token : '+ token.usertoken);
-                automodule.autoViewByToken(token.usertoken,urlvideo,time * 1000);
-            }
-            currentNumberToken = currentNumberToken + tokens.length();
+        var minTimes = Math.floor(number/tokens.length);
+        var modView= number % tokens.length;
+        var i1 = 0;
+        for (i1 = 0;i1<modView;i1++)
+        {
+            automodule.autoViewTimesByToken(tokens[i1].usertoken,urlvideo,time, minTimes + 1);
         }
+
+        if(minTimes > 0){
+            for ( i1 = modView;i1<tokens.length;i1++)
+            {
+                automodule.autoViewTimesByToken(tokens[i1].usertoken,urlvideo,time, minTimes);
+            }
+        }
+
     });
 
 });
@@ -85,12 +135,12 @@ router.post('/control-video', function (req,res,next) {
 router.get('/insert-user', isLoggedIn, function(req, res, next) {
     console.log('render insert-user ');
     var User= require('../models/user');
-    Token.find(function (err,docs) {
+    User.find(function (err,docs) {
         if(err)
             console.log('dm tu');
        var tokenList = [];
         console.log("Chieu dai: "+ docs.length);
-        res.render('admin/insertuser', {data:docs});
+        res.render('admin/insertuser', {data:docs, index:1});
     });
 });
 
